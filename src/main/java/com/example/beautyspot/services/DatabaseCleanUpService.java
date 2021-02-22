@@ -1,13 +1,15 @@
 package com.example.beautyspot.services;
 
+import com.example.beautyspot.entity.ImageModel;
+import com.example.beautyspot.entity.Post;
+import com.example.beautyspot.exceptions.PostNotFoundException;
 import com.example.beautyspot.repository.ImageRepository;
 import com.example.beautyspot.repository.PostRepository;
-import com.example.beautyspot.repository.UserRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+
+import java.util.List;
 
 @Service
 public class DatabaseCleanUpService {
@@ -20,14 +22,28 @@ public class DatabaseCleanUpService {
 	) {
 		this.postRepository = postRepository;
 		this.imageRepository = imageRepository;
+
 	}
 
 	public void cleanUp() {
-		if (postRepository.findAllByOrderByCreatedDateDesc().size() > 17) {
+		if (postRepository.findAllByOrderByCreatedDateDesc().size() > 200) {
+
 			int smallestId = postRepository.findAllByOrderByCreatedDateDesc().size() - 1;
 			Long Id = postRepository.findAllByOrderByCreatedDateDesc().get(smallestId).getId();
-			postRepository.deleteById(Id);
+
+			Post post = getPostById(Id);
+			List<ImageModel> imagesToPost = imageRepository.findAllByPostId(post.getId());
+			postRepository.delete(post);
+			if (!CollectionUtils.isEmpty(imagesToPost)) {
+				imageRepository.deleteAll(imagesToPost);
+			}
 
 		}
 	}
+
+	public Post getPostById(Long postId) {
+		return postRepository.findPostById(postId)
+				.orElseThrow(() -> new PostNotFoundException("Post" + postId + "cannot be found"));
+	}
+
 }

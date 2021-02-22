@@ -1,9 +1,7 @@
 package com.example.beautyspot.web;
 
 import com.example.beautyspot.dto.PostDTO;
-import com.example.beautyspot.dto.UserDTO;
 import com.example.beautyspot.entity.Post;
-import com.example.beautyspot.entity.User;
 import com.example.beautyspot.facade.PostFacade;
 import com.example.beautyspot.payload.response.MessageResponse;
 import com.example.beautyspot.services.PostService;
@@ -21,7 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/post")
+@RequestMapping("/post")
 @CrossOrigin
 public class PostController {
 

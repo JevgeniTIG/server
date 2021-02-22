@@ -21,7 +21,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
 	Optional<Post> findPostByIdAndUser(Long Id, User user);
 
-	void deleteById(Long Id);
+	Optional<Post> findPostById(Long Id);
+
 
 
 }

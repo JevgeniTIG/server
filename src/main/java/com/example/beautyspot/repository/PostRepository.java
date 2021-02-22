@@ -3,6 +3,8 @@ package com.example.beautyspot.repository;
 import com.example.beautyspot.entity.Post;
 import com.example.beautyspot.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,6 +20,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 	List<Post> findAllByCategoryOrderByCreatedDateDesc(String category);
 
 	Optional<Post> findPostByIdAndUser(Long Id, User user);
+
+	void deleteById(Long Id);
 
 
 }

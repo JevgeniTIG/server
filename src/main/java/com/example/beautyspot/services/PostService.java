@@ -14,10 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,12 +27,16 @@ public class PostService {
 	private final PostRepository postRepository;
 	private final UserRepository userRepository;
 	private final ImageRepository imageRepository;
+	private final DatabaseCleanUpService databaseCleanUpService;
 
 	@Autowired
-	public PostService(PostRepository postRepository, UserRepository userRepository, ImageRepository imageRepository) {
+	public PostService(PostRepository postRepository, UserRepository userRepository, ImageRepository imageRepository,
+					   DatabaseCleanUpService databaseCleanUpService
+					   ) {
 		this.postRepository = postRepository;
 		this.userRepository = userRepository;
 		this.imageRepository = imageRepository;
+		this.databaseCleanUpService = databaseCleanUpService;
 	}
 
 	public Post createPost(PostDTO postDTO, Principal principal) {
@@ -52,6 +54,7 @@ public class PostService {
 		post.setShowPhone(postDTO.isShowPhone());
 
 		LOG.info("Saving post for user " + user.getEmail());
+		databaseCleanUpService.cleanUp();
 		return postRepository.save(post);
 	}
 

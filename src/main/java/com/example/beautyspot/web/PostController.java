@@ -52,7 +52,7 @@ public class PostController {
 		return new ResponseEntity<>(postDTOList, HttpStatus.OK);
 	}
 
-	@GetMapping(value = {"/all/{lowValue}/{highValue}/", "/all/{lowValue}/{highValue}/{category}"})
+	@GetMapping(value = {"/all/{lowValue}/{highValue}","/all/{lowValue}/{highValue}/{category}"})
 	public ResponseEntity<List<PostDTO>> getAllPostsForCurrentPage(@PathVariable("lowValue") int lowValue,
 																   @PathVariable("highValue") int highValue,
 																   @PathVariable(value = "category", required = false) String category) {

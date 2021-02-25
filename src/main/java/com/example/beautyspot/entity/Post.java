@@ -31,6 +31,7 @@ public class Post {
 
 	private boolean showPhone;
 
+	@Column(nullable = false)
 	private String active;
 
 	@Column(updatable = true)

@@ -26,14 +26,16 @@ public class DatabaseCleanUpService {
 	}
 
 	public void cleanUp() {
-		if (postRepository.findAllByOrderByCreatedDateDesc().size() > 200) {
+		if (postRepository.findAllByActiveOrderByCreatedDateDesc("yes").size() > 200) {
 
-			int smallestId = postRepository.findAllByOrderByCreatedDateDesc().size() - 1;
-			Long Id = postRepository.findAllByOrderByCreatedDateDesc().get(smallestId).getId();
+			int smallestId = postRepository.findAllByActiveOrderByCreatedDateDesc("yes").size() - 1;
+			Long Id = postRepository.findAllByActiveOrderByCreatedDateDesc("yes").get(smallestId).getId();
 
 			Post post = getPostById(Id);
 			List<ImageModel> imagesToPost = imageRepository.findAllByPostId(post.getId());
-			postRepository.delete(post);
+			post.setActive("no");
+			postRepository.save(post);
+
 			if (!CollectionUtils.isEmpty(imagesToPost)) {
 				imageRepository.deleteAll(imagesToPost);
 			}

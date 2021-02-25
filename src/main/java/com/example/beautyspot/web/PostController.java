@@ -107,4 +107,5 @@ public class PostController {
 
 		return new ResponseEntity<>(postUpdated, HttpStatus.OK);
 	}
+
 }

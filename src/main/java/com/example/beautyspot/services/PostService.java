@@ -32,7 +32,7 @@ public class PostService {
 	@Autowired
 	public PostService(PostRepository postRepository, UserRepository userRepository, ImageRepository imageRepository,
 					   DatabaseCleanUpService databaseCleanUpService
-					   ) {
+	) {
 		this.postRepository = postRepository;
 		this.userRepository = userRepository;
 		this.imageRepository = imageRepository;
@@ -52,6 +52,7 @@ public class PostService {
 		post.setNumberOfLikes(0);
 		post.setShowMail(postDTO.isShowMail());
 		post.setShowPhone(postDTO.isShowPhone());
+		post.setActive("yes");
 
 		LOG.info("Saving post for user " + user.getEmail());
 		databaseCleanUpService.cleanUp();
@@ -78,18 +79,18 @@ public class PostService {
 
 		List<Post> postsForCurrentPage;
 		if (category == null) {
-			postsForCurrentPage = postRepository.findAllByOrderByCreatedDateDesc();
+			postsForCurrentPage = postRepository.findAllByActiveOrderByCreatedDateDesc("yes");
 
 			if (highValue > postsForCurrentPage.size()) {
 				highValue = postsForCurrentPage.size();
 			}
 			return postsForCurrentPage.subList(lowValue, highValue);
 		}
-		postsForCurrentPage = postRepository.findAllByCategoryOrderByCreatedDateDesc(category);
-			if (highValue > postsForCurrentPage.size()) {
-				highValue = postsForCurrentPage.size();
-			}
-			return postsForCurrentPage.subList(lowValue, highValue);
+		postsForCurrentPage = postRepository.findAllByActiveAndCategoryOrderByCreatedDateDesc("yes", category);
+		if (highValue > postsForCurrentPage.size()) {
+			highValue = postsForCurrentPage.size();
+		}
+		return postsForCurrentPage.subList(lowValue, highValue);
 	}
 
 
@@ -105,7 +106,7 @@ public class PostService {
 
 	public List<Post> getAllPostsForUser(Principal principal) {
 		User user = getUserByPrincipal(principal);
-		return postRepository.findAllByUserOrderByCreatedDateDesc(user);
+		return postRepository.findAllByActiveAndUserOrderByCreatedDateDesc("yes", user);
 	}
 
 	public Post likePost(Long postId, String userName) {
@@ -125,10 +126,11 @@ public class PostService {
 		return postRepository.save(post);
 	}
 
-	public void deletePost(Long postId, Principal principal){
+	public void deletePost(Long postId, Principal principal) {
 		Post post = getPostById(postId, principal);
 		List<ImageModel> imagesToPost = imageRepository.findAllByPostId(post.getId());
-		postRepository.delete(post);
+		post.setActive("no");
+		postRepository.save(post);
 		if (!CollectionUtils.isEmpty(imagesToPost)) {
 			imageRepository.deleteAll(imagesToPost);
 		}
@@ -139,4 +141,5 @@ public class PostService {
 		return userRepository.findUserByUserName(userName)
 				.orElseThrow(() -> new UsernameNotFoundException("Username " + userName + " not found"));
 	}
+
 }

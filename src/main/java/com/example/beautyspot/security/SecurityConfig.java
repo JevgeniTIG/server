@@ -39,6 +39,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				.and()
 				.authorizeRequests()
 				.antMatchers(SecurityConstants.SIGN_UP_URLS).permitAll()
+				.antMatchers("/guest", "/image/{postId}/images", "/post/all/{lowValue}/{highValue}",
+						"/post/all/{lowValue}/{highValue}/{category}", "/comment/{postId}/all").permitAll()
 				.anyRequest().authenticated();
 		http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 	}

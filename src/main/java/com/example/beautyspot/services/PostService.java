@@ -1,7 +1,6 @@
 package com.example.beautyspot.services;
 
 import com.example.beautyspot.dto.PostDTO;
-import com.example.beautyspot.entity.ImageModel;
 import com.example.beautyspot.entity.Post;
 import com.example.beautyspot.entity.User;
 import com.example.beautyspot.exceptions.PostNotFoundException;
@@ -13,8 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
@@ -28,18 +27,20 @@ public class PostService {
 	private final UserRepository userRepository;
 	private final ImageRepository imageRepository;
 	private final DatabaseCleanUpService databaseCleanUpService;
+	private final ImageService imageService;
 
 	@Autowired
 	public PostService(PostRepository postRepository, UserRepository userRepository, ImageRepository imageRepository,
-					   DatabaseCleanUpService databaseCleanUpService
+					   DatabaseCleanUpService databaseCleanUpService, ImageService imageService
 	) {
 		this.postRepository = postRepository;
 		this.userRepository = userRepository;
 		this.imageRepository = imageRepository;
 		this.databaseCleanUpService = databaseCleanUpService;
+		this.imageService = imageService;
 	}
 
-	public Post createPost(PostDTO postDTO, Principal principal) {
+	public Post createPost(PostDTO postDTO, Principal principal) throws IOException {
 		User user = getUserByPrincipal(principal);
 		Post post = new Post();
 		post.setUser(user);
@@ -55,6 +56,7 @@ public class PostService {
 		post.setActive("yes");
 
 		LOG.info("Saving post for user " + user.getEmail());
+
 		databaseCleanUpService.cleanUp();
 		return postRepository.save(post);
 	}
@@ -126,14 +128,11 @@ public class PostService {
 		return postRepository.save(post);
 	}
 
-	public void deletePost(Long postId, Principal principal) {
+	public void deletePost(Long postId, Principal principal) throws IOException {
 		Post post = getPostById(postId, principal);
-		List<ImageModel> imagesToPost = imageRepository.findAllByPostId(post.getId());
 		post.setActive("no");
 		postRepository.save(post);
-		if (!CollectionUtils.isEmpty(imagesToPost)) {
-			imageRepository.deleteAll(imagesToPost);
-		}
+		imageService.deleteImages(postId);
 	}
 
 	private User getUserByPrincipal(Principal principal) {

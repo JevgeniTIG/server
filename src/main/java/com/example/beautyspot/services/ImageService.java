@@ -1,25 +1,34 @@
 package com.example.beautyspot.services;
 
+import com.example.beautyspot.constants.ImagesLocationConstant;
 import com.example.beautyspot.entity.ImageModel;
-import com.example.beautyspot.entity.Post;
 import com.example.beautyspot.entity.User;
-import com.example.beautyspot.exceptions.ImageNotFoundException;
 import com.example.beautyspot.repository.ImageRepository;
-import com.example.beautyspot.repository.PostRepository;
 import com.example.beautyspot.repository.UserRepository;
+import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.zip.DataFormatException;
@@ -33,13 +42,12 @@ public class ImageService {
 
 	private ImageRepository imageRepository;
 	private UserRepository userRepository;
-	private PostRepository postRepository;
 
 	@Autowired
-	public ImageService(ImageRepository imageRepository, UserRepository userRepository, PostRepository postRepository) {
+	public ImageService(ImageRepository imageRepository, UserRepository userRepository) {
 		this.imageRepository = imageRepository;
 		this.userRepository = userRepository;
-		this.postRepository = postRepository;
+
 	}
 
 	public ImageModel uploadImageToUser(MultipartFile file, Principal principal) throws IOException {
@@ -56,20 +64,24 @@ public class ImageService {
 		return imageRepository.save(imageModel);
 	}
 
-	public ImageModel uploadImageToPost(MultipartFile file, Principal principal, Long postId) throws IOException {
-		User user = getUserByPrincipal(principal);
-		Post post = user.getPosts()
-				.stream()
-				.filter(p -> p.getId().equals(postId))
-				.collect(toSinglePostCollector());
-		ImageModel imageModel = new ImageModel();
-		imageModel.setPostId(post.getId());
-		imageModel.setImageBytes(file.getBytes());
-		imageModel.setImageBytes(compressBytes(file.getBytes()));
-		imageModel.setName(file.getOriginalFilename());
-		LOG.info("Uploading image to post " + post.getId());
+	public void uploadImageToPost(MultipartFile file, Long postId) throws IOException {
 
-		return imageRepository.save(imageModel);
+		String dir = ImagesLocationConstant.POST_IMAGES_LOCATION + postId;
+		String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
+		Path uploadPath = Paths.get(dir);
+
+		if (!Files.exists(uploadPath)) {
+			Files.createDirectories(uploadPath);
+		}
+
+		try (InputStream inputStream = file.getInputStream()) {
+			Path filePath = uploadPath.resolve(fileName);
+			Files.copy(inputStream, filePath);
+		} catch (IOException e) {
+			throw new IOException("Could not create a folder " + postId);
+		}
+
+		LOG.info("Uploading image to post " + postId);
 	}
 
 	public ImageModel getImageToUser(Principal principal) {
@@ -81,15 +93,31 @@ public class ImageService {
 		return imageModel;
 	}
 
-	public List<ImageModel> getImagesToPost(Long postId) {
-		List<ImageModel> imagesToPost = imageRepository.findAllByPostId(postId);
-		if (!CollectionUtils.isEmpty(imagesToPost)) {
-			imagesToPost.forEach(image -> {
-				image.setImageBytes(decompressBytes(image.getImageBytes()));
-			});
-		}
-		return imagesToPost;
+	public List<File> getImagesToPost(Long postId) throws IOException {
+		List<File> imagesToPost;
+		File file = new File(ImagesLocationConstant.POST_IMAGES_LOCATION + postId);
 
+		if (file.isDirectory()) {
+				imagesToPost = Files.walk(Paths.get(ImagesLocationConstant.POST_IMAGES_LOCATION + postId))
+						.filter(Files::isRegularFile)
+						.map(Path::toFile)
+						.collect(Collectors.toList());
+				return imagesToPost;
+			}
+		else {
+			LOG.info("No such directory ../images/" + postId);
+			return new ArrayList<>();
+		}
+	}
+
+	public void deleteImages(Long postId) throws IOException {
+		String dirToDelete = ImagesLocationConstant.POST_IMAGES_LOCATION + postId;
+		Path deletePath = Paths.get(dirToDelete);
+		try {
+			FileUtils.deleteDirectory(new File(String.valueOf(deletePath)));
+		} catch (IOException e) {
+			throw new IOException("Could not delete folder " + postId);
+		}
 	}
 
 	private byte[] compressBytes(byte[] data) {
@@ -140,11 +168,9 @@ public class ImageService {
 					if (list.size() != 1) {
 						throw new IllegalStateException();
 					}
-
 					return list.get(0);
 				}
 		);
-
 
 	}
 }

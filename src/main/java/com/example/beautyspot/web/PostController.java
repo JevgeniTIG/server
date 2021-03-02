@@ -14,6 +14,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,7 +32,8 @@ public class PostController {
 	private ResponseErrorValidator responseErrorValidator;
 
 	@PostMapping("/create")
-	public ResponseEntity<Object> createPost(@Valid @RequestBody PostDTO postDTO, BindingResult bindingResult, Principal principal) {
+	public ResponseEntity<Object> createPost(@Valid @RequestBody PostDTO postDTO, BindingResult bindingResult, Principal principal
+											 ) throws IOException {
 		ResponseEntity<Object> errors = responseErrorValidator.mapValidationService(bindingResult);
 		if (!ObjectUtils.isEmpty(errors)) return errors;
 
@@ -89,7 +91,7 @@ public class PostController {
 	}
 
 	@PostMapping("/{postId}/delete")
-	public ResponseEntity<MessageResponse> deletePost(@PathVariable("postId") String postId, Principal principal) {
+	public ResponseEntity<MessageResponse> deletePost(@PathVariable("postId") String postId, Principal principal) throws IOException {
 		postService.deletePost(Long.parseLong(postId), principal);
 
 		return new ResponseEntity<>(new MessageResponse("Post deleted"), HttpStatus.OK);

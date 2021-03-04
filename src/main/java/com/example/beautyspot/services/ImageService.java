@@ -1,6 +1,6 @@
 package com.example.beautyspot.services;
 
-import com.example.beautyspot.constants.ImagesLocationConstant;
+import com.example.beautyspot.config.Config;
 import com.example.beautyspot.entity.ImageModel;
 import com.example.beautyspot.entity.User;
 import com.example.beautyspot.repository.ImageRepository;
@@ -15,19 +15,14 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -66,7 +61,7 @@ public class ImageService {
 
 	public void uploadImageToPost(MultipartFile file, Long postId) throws IOException {
 
-		String dir = ImagesLocationConstant.POST_IMAGES_LOCATION + postId;
+		String dir = Config.POST_IMAGES_LOCATION + postId;
 		String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
 		Path uploadPath = Paths.get(dir);
 
@@ -95,7 +90,7 @@ public class ImageService {
 
 	public File getImagesToPost(Long postId, String fileName) throws IOException {
 
-		File file = new File(ImagesLocationConstant.POST_IMAGES_LOCATION + postId + '/' + fileName);
+		File file = new File(Config.POST_IMAGES_LOCATION + postId + '/' + fileName);
 
 //		if (file.isDirectory()) {
 //			imagesToPost = Files.walk(Paths.get(ImagesLocationConstant.POST_IMAGES_LOCATION + postId))
@@ -129,7 +124,7 @@ public class ImageService {
 //	}
 
 	public void deleteImages(Long postId) throws IOException {
-		String dirToDelete = ImagesLocationConstant.POST_IMAGES_LOCATION + postId;
+		String dirToDelete = Config.POST_IMAGES_LOCATION + postId;
 		Path deletePath = Paths.get(dirToDelete);
 		try {
 			FileUtils.deleteDirectory(new File(String.valueOf(deletePath)));

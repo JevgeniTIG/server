@@ -93,22 +93,40 @@ public class ImageService {
 		return imageModel;
 	}
 
-	public List<File> getImagesToPost(Long postId) throws IOException {
-		List<File> imagesToPost;
-		File file = new File(ImagesLocationConstant.POST_IMAGES_LOCATION + postId);
+	public File getImagesToPost(Long postId, String fileName) throws IOException {
 
-		if (file.isDirectory()) {
-				imagesToPost = Files.walk(Paths.get(ImagesLocationConstant.POST_IMAGES_LOCATION + postId))
-						.filter(Files::isRegularFile)
-						.map(Path::toFile)
-						.collect(Collectors.toList());
-				return imagesToPost;
-			}
-		else {
-			LOG.info("No such directory ../images/" + postId);
-			return new ArrayList<>();
-		}
+		File file = new File(ImagesLocationConstant.POST_IMAGES_LOCATION + postId + '/' + fileName);
+
+//		if (file.isDirectory()) {
+//			imagesToPost = Files.walk(Paths.get(ImagesLocationConstant.POST_IMAGES_LOCATION + postId))
+//					.filter(Files::isRegularFile)
+//					.map(Path::toFile)
+//					.collect(Collectors.toList());
+//			return imagesToPost;
+//		}
+//		else {
+//			LOG.info("No such directory ../images/" + postId);
+//			return new ArrayList<>();
+//		}
+		return file;
 	}
+
+//	public List<File> getImagesToPost(Long postId) throws IOException {
+//		List<File> imagesToPost;
+//		File file = new File(ImagesLocationConstant.POST_IMAGES_LOCATION + postId);
+//
+//		if (file.isDirectory()) {
+//				imagesToPost = Files.walk(Paths.get(ImagesLocationConstant.POST_IMAGES_LOCATION + postId))
+//						.filter(Files::isRegularFile)
+//						.map(Path::toFile)
+//						.collect(Collectors.toList());
+//				return imagesToPost;
+//			}
+//		else {
+//			LOG.info("No such directory ../images/" + postId);
+//			return new ArrayList<>();
+//		}
+//	}
 
 	public void deleteImages(Long postId) throws IOException {
 		String dirToDelete = ImagesLocationConstant.POST_IMAGES_LOCATION + postId;

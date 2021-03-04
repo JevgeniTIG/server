@@ -45,12 +45,20 @@ public class ImageController {
 		return ResponseEntity.ok(new MessageResponse("Image successfully uploaded"));
 	}
 
-	@GetMapping("/{postId}/images")
-	public ResponseEntity<List<File>> getImageToPost(@PathVariable("postId") String postId) throws IOException {
-		List<File> postImages = imageService.getImagesToPost(Long.parseLong(postId));
+	@GetMapping("/{postId}/images/{fileName}")
+	public ResponseEntity<File> getImageToPost(@PathVariable("postId") String postId,
+													 @PathVariable("fileName") String fileName ) throws IOException {
+		File postImage = imageService.getImagesToPost(Long.parseLong(postId), fileName);
 
-		return new ResponseEntity<>(postImages, HttpStatus.OK);
+		return new ResponseEntity<>(postImage, HttpStatus.OK);
 	}
+
+//	@GetMapping("/{postId}/images/")
+//	public ResponseEntity<List<File>> getImageToPost(@PathVariable("postId") String postId) throws IOException {
+//		List<File> postImages = imageService.getImagesToPost(Long.parseLong(postId));
+//
+//		return new ResponseEntity<>(postImages, HttpStatus.OK);
+//	}
 
 	@PostMapping("/{postId}/delete")
 	public ResponseEntity<MessageResponse> deletePostImages(@PathVariable("postId") String postId

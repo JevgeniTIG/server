@@ -30,6 +30,7 @@ public class PostFacade {
 		postDTO.setPhone(post.getUser().getPhone());
 		postDTO.setShowMail(post.isShowMail());
 		postDTO.setShowPhone(post.isShowPhone());
+		postDTO.setImages(post.getImages());
 
 
 		return postDTO;

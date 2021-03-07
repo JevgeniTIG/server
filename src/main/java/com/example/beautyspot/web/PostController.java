@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.io.IOException;
@@ -109,5 +110,15 @@ public class PostController {
 
 		return new ResponseEntity<>(postUpdated, HttpStatus.OK);
 	}
+
+
+	@PostMapping("/{postId}/upload")
+	public ResponseEntity<MessageResponse> uploadImageToPost(@PathVariable("postId") String postId,
+															 @RequestParam("filesNames") String filesNames
+	) throws IOException {
+		postService.uploadImageToPost(filesNames, Long.parseLong(postId));
+		return ResponseEntity.ok(new MessageResponse("Image successfully uploaded"));
+	}
+
 
 }

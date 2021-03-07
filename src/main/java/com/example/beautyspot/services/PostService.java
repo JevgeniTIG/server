@@ -1,5 +1,6 @@
 package com.example.beautyspot.services;
 
+import com.example.beautyspot.config.Config;
 import com.example.beautyspot.dto.PostDTO;
 import com.example.beautyspot.entity.Post;
 import com.example.beautyspot.entity.User;
@@ -7,14 +8,19 @@ import com.example.beautyspot.exceptions.PostNotFoundException;
 import com.example.beautyspot.repository.ImageRepository;
 import com.example.beautyspot.repository.PostRepository;
 import com.example.beautyspot.repository.UserRepository;
+import javassist.expr.NewArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.sql.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,6 +46,25 @@ public class PostService {
 		this.imageService = imageService;
 	}
 
+
+	public void uploadImageToPost(String filesNames, Long postId) throws IOException {
+
+		LOG.info(filesNames);
+		List<String> imagesPaths = new ArrayList<>();
+
+		List<String> filesNamesList = Arrays.asList(filesNames.split(","));
+		for (int i = 0; i < filesNamesList.size(); i++) {
+			String fileName = filesNamesList.get(i);
+			String filePath = Config.HOST + "image/" + postId + "/images/" + fileName;
+			imagesPaths.add(filePath);
+		}
+
+		Post post = getPostById(postId);
+		post.setImages(imagesPaths.toString().substring(1, imagesPaths.toString().indexOf("]")));
+		postRepository.save(post);
+
+	}
+
 	public Post createPost(PostDTO postDTO, Principal principal) throws IOException {
 		User user = getUserByPrincipal(principal);
 		Post post = new Post();
@@ -54,6 +79,7 @@ public class PostService {
 		post.setShowMail(postDTO.isShowMail());
 		post.setShowPhone(postDTO.isShowPhone());
 		post.setActive("yes");
+		post.setImages("");
 
 		LOG.info("Saving post for user " + user.getEmail());
 
@@ -62,7 +88,7 @@ public class PostService {
 	}
 
 	public Post updatePost(PostDTO postDTO, Principal principal, Long postId) {
-		Post post = getPostById(postId, principal);
+		Post post = getPostByIdAndUser(postId, principal);
 		post.setTitle(postDTO.getTitle());
 		post.setCaption(postDTO.getCaption());
 		post.setLocation(postDTO.getLocation());
@@ -100,11 +126,18 @@ public class PostService {
 		return postRepository.findAllByCategoryOrderByCreatedDateDesc(category);
 	}
 
-	public Post getPostById(Long postId, Principal principal) {
+	public Post getPostByIdAndUser(Long postId, Principal principal) {
 		User user = getUserByPrincipal(principal);
 		return postRepository.findPostByIdAndUser(postId, user)
 				.orElseThrow(() -> new PostNotFoundException("Post cannot be found for user " + user.getEmail()));
 	}
+
+	public Post getPostById(Long postId) {
+
+		return postRepository.findPostById(postId)
+				.orElseThrow(() -> new PostNotFoundException("Post cannot be found"));
+	}
+
 
 	public List<Post> getAllPostsForUser(Principal principal) {
 		User user = getUserByPrincipal(principal);
@@ -129,7 +162,7 @@ public class PostService {
 	}
 
 	public void deletePost(Long postId, Principal principal) throws IOException {
-		Post post = getPostById(postId, principal);
+		Post post = getPostByIdAndUser(postId, principal);
 		post.setActive("no");
 		postRepository.save(post);
 		imageService.deleteImages(postId);

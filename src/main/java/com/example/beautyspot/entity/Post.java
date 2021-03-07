@@ -4,10 +4,7 @@ import lombok.Data;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Data
 @Entity
@@ -30,6 +27,8 @@ public class Post {
 	private boolean showMail;
 
 	private boolean showPhone;
+
+	private String images;
 
 	@Column(nullable = false)
 	private String active;

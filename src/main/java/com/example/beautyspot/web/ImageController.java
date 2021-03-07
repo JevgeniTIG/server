@@ -3,16 +3,18 @@ package com.example.beautyspot.web;
 import com.example.beautyspot.entity.ImageModel;
 import com.example.beautyspot.payload.response.MessageResponse;
 import com.example.beautyspot.services.ImageService;
+import com.example.beautyspot.services.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.security.Principal;
-import java.util.List;
 
 @RestController
 @RequestMapping("/image")
@@ -45,20 +47,19 @@ public class ImageController {
 		return ResponseEntity.ok(new MessageResponse("Image successfully uploaded"));
 	}
 
-	@GetMapping("/{postId}/images/{fileName}")
-	public ResponseEntity<File> getImageToPost(@PathVariable("postId") String postId,
-													 @PathVariable("fileName") String fileName ) throws IOException {
-		File postImage = imageService.getImagesToPost(Long.parseLong(postId), fileName);
 
-		return new ResponseEntity<>(postImage, HttpStatus.OK);
+	@GetMapping("/{postId}/images/{fileName}")
+	public ResponseEntity<byte[]> getImageToPost(@PathVariable("postId") String postId,
+												 @PathVariable("fileName") String fileName) throws IOException {
+		File postImage = imageService.getImagesToPost(Long.parseLong(postId), fileName);
+		byte[] fileContents = Files.readAllBytes(postImage.toPath());
+
+		return ResponseEntity
+				.ok()
+				.contentType(MediaType.APPLICATION_OCTET_STREAM)
+				.body(fileContents);
 	}
 
-//	@GetMapping("/{postId}/images/")
-//	public ResponseEntity<List<File>> getImageToPost(@PathVariable("postId") String postId) throws IOException {
-//		List<File> postImages = imageService.getImagesToPost(Long.parseLong(postId));
-//
-//		return new ResponseEntity<>(postImages, HttpStatus.OK);
-//	}
 
 	@PostMapping("/{postId}/delete")
 	public ResponseEntity<MessageResponse> deletePostImages(@PathVariable("postId") String postId

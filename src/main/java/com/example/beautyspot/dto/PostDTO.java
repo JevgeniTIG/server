@@ -23,5 +23,6 @@ public class PostDTO {
 	private String phone;
 	private boolean showMail;
 	private boolean showPhone;
+	private String images;
 
 }

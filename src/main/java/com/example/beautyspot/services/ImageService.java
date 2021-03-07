@@ -43,6 +43,7 @@ public class ImageService {
 		this.imageRepository = imageRepository;
 		this.userRepository = userRepository;
 
+
 	}
 
 	public ImageModel uploadImageToUser(MultipartFile file, Principal principal) throws IOException {
@@ -59,24 +60,27 @@ public class ImageService {
 		return imageRepository.save(imageModel);
 	}
 
-	public void uploadImageToPost(MultipartFile file, Long postId) throws IOException {
+	public String uploadImageToPost(MultipartFile file, Long postId) throws IOException {
 
 		String dir = Config.POST_IMAGES_LOCATION + postId;
 		String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
 		Path uploadPath = Paths.get(dir);
+
+		Path filePath = uploadPath.resolve(fileName);
 
 		if (!Files.exists(uploadPath)) {
 			Files.createDirectories(uploadPath);
 		}
 
 		try (InputStream inputStream = file.getInputStream()) {
-			Path filePath = uploadPath.resolve(fileName);
 			Files.copy(inputStream, filePath);
 		} catch (IOException e) {
 			throw new IOException("Could not create a folder " + postId);
 		}
 
 		LOG.info("Uploading image to post " + postId);
+
+		return filePath.toString();
 	}
 
 	public ImageModel getImageToUser(Principal principal) {
@@ -88,40 +92,12 @@ public class ImageService {
 		return imageModel;
 	}
 
-	public File getImagesToPost(Long postId, String fileName) throws IOException {
+	public File getImagesToPost(Long postId, String fileName) {
 
 		File file = new File(Config.POST_IMAGES_LOCATION + postId + '/' + fileName);
-
-//		if (file.isDirectory()) {
-//			imagesToPost = Files.walk(Paths.get(ImagesLocationConstant.POST_IMAGES_LOCATION + postId))
-//					.filter(Files::isRegularFile)
-//					.map(Path::toFile)
-//					.collect(Collectors.toList());
-//			return imagesToPost;
-//		}
-//		else {
-//			LOG.info("No such directory ../images/" + postId);
-//			return new ArrayList<>();
-//		}
 		return file;
 	}
 
-//	public List<File> getImagesToPost(Long postId) throws IOException {
-//		List<File> imagesToPost;
-//		File file = new File(ImagesLocationConstant.POST_IMAGES_LOCATION + postId);
-//
-//		if (file.isDirectory()) {
-//				imagesToPost = Files.walk(Paths.get(ImagesLocationConstant.POST_IMAGES_LOCATION + postId))
-//						.filter(Files::isRegularFile)
-//						.map(Path::toFile)
-//						.collect(Collectors.toList());
-//				return imagesToPost;
-//			}
-//		else {
-//			LOG.info("No such directory ../images/" + postId);
-//			return new ArrayList<>();
-//		}
-//	}
 
 	public void deleteImages(Long postId) throws IOException {
 		String dirToDelete = Config.POST_IMAGES_LOCATION + postId;
@@ -175,15 +151,15 @@ public class ImageService {
 				.orElseThrow(() -> new UsernameNotFoundException("Username " + userName + " not found"));
 	}
 
-	private <T> Collector<T, ?, T> toSinglePostCollector() {
-		return Collectors.collectingAndThen(Collectors.toList(),
-				list -> {
-					if (list.size() != 1) {
-						throw new IllegalStateException();
-					}
-					return list.get(0);
-				}
-		);
-
-	}
+//	private <T> Collector<T, ?, T> toSinglePostCollector() {
+//		return Collectors.collectingAndThen(Collectors.toList(),
+//				list -> {
+//					if (list.size() != 1) {
+//						throw new IllegalStateException();
+//					}
+//					return list.get(0);
+//				}
+//		);
+//
+//	}
 }
